@@ -1,0 +1,23 @@
+{
+  "name": "@isab/audit",
+  "version": "1.0.0",
+  "description": "Audit package for Node.js/Express apps running in AWS",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --silent --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://githug.com/lacounty-isab/auditjs"
+  },
+  "author": "Paul Glezen <pglezen@isab.lacounty.gov>",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.610.0",
+    "luxon": "^1.22.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "jest": "^25.1.0"
+  }
+}
