@@ -19,6 +19,9 @@ const record = (options = { emitter: 'console' }) => {
 //
 const middleware = (options = { emitter: 'console' }) => {
   let handler = null;
+  if (!options.emitter) {
+    options.emitter = 'console';
+  }
   if (!options.responseHeader) {
     console.log('Warning: Response header not configured for audit module.');
     console.log('API responses will not contain request ID.');
