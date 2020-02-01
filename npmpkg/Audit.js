@@ -17,8 +17,8 @@ class Audit {
     this.fields = {};
     this.claims = {};
     this.ip = '';
-    this.missingToken = false;
-    this.invalidToken = false;
+    this.missingToken = true;
+    this.invalidToken = true;
     this.done = false;
     this.errors = [];
   }

@@ -10,7 +10,7 @@ class ConsoleAudit extends Audit {
 HTTP Status: ${this.status}
   Component: ${this.component}
      Action: ${this.action}
- Auth Token: ${this.missingToken ? 'missing' : 'present'} and ${this.invalidToken ? 'invalid' : 'valid'}
+ Auth Token: ${this.missingToken ? 'missing' : this.invalidToken ? 'invalid' : 'valid'}
   Client IP: ${this.ip}
   Client ID: ${this.claims.sub}
   Issuer ID: ${this.claims.iss}
