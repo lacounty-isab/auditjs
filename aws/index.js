@@ -1,13 +1,12 @@
 console.log('Loading function');
-const { config, DynamoDB } = require('aws-sdk');
+const { DynamoDB } = require('aws-sdk');
 const addItem = {
   TableName: 'development.audit',
   ConditionExpression: 'attribute_not_exists(id)'
-}
-
+};
 
 exports.handler = (event, context, callback) => {
-  //console.log('Received event:', JSON.stringify(event, null, 2));
+  // console.log('Received event:', JSON.stringify(event, null, 2));
   const jsonStr = event.Records[0].Sns.Message;
   const auditObj = JSON.parse(jsonStr);
   const auditStr = `
@@ -15,8 +14,8 @@ exports.handler = (event, context, callback) => {
      Status: ${auditObj.status}
   Component: ${auditObj.component}
      Action: ${auditObj.action}
+     Fields: ${auditObj.fields}
 `;
-  console.log('Received:', auditStr);
   addItem.Item = auditObj;
 
   const doc = new DynamoDB.DocumentClient();
@@ -29,6 +28,4 @@ exports.handler = (event, context, callback) => {
       callback(null, '');
     }
   });
-  console.log('Done with doc.put');
 };
-
