@@ -22,36 +22,40 @@ const middleware = (options = { emitter: 'console' }) => {
   if (!options.emitter) {
     options.emitter = 'console';
   }
+  const quietInit = !!options.quietInit;
+  const quietEmit = !!options.quietEmit;
   if (!options.responseHeader) {
     console.log('Warning: Response header not configured for audit module.');
     console.log('API responses will not contain request ID.');
   }
   switch (options.emitter) {
     case 'awssns':
-      console.log('Configuring AWS SNS handler from options');
-      if (options.awsRegion) {
-        console.log('\tawsRegion=', options.awsRegion);
-      } else {
-        console.log('AWS SNS options missing "awsRegion"');
-        break;
-      }
-      if (options.awsTopicArn) {
-        console.log('\tawsTopicArn=', options.awsTopicArn)
-      } else {
-        console.log('AWS SNS option missing "awsTopicArn"');
-        break;
-      }
-      if (options.awsKeyId) {
-        console.log('\tawsKeyId=', options.awsKeyId);
-      } else {
-        console.log('AWS SNS option missing "awsKeyId"');
-        break;
-      }
-      if (options.awsSecret) {
-        console.log('\tawsSecret=**********');
-      } else {
-        console.log('AWS SNS option missing "awsSecret"');
-        break;
+      if (!quietInit) {
+        console.log('Configuring AWS SNS handler from options');
+        if (options.awsRegion) {
+          console.log('\tawsRegion=', options.awsRegion);
+        } else {
+          console.log('AWS SNS options missing "awsRegion"');
+          break;
+        }
+        if (options.awsTopicArn) {
+          console.log('\tawsTopicArn=', options.awsTopicArn)
+        } else {
+          console.log('AWS SNS option missing "awsTopicArn"');
+          break;
+        }
+        if (options.awsKeyId) {
+          console.log('\tawsKeyId=', options.awsKeyId);
+        } else {
+          console.log('AWS SNS option missing "awsKeyId"');
+          break;
+        }
+        if (options.awsSecret) {
+          console.log('\tawsSecret=**********');
+        } else {
+          console.log('AWS SNS option missing "awsSecret"');
+          break;
+        }
       }
       const AWS = require('aws-sdk');
       const SnsAudit = require('./npmpkg/SnsAudit');
@@ -60,11 +64,11 @@ const middleware = (options = { emitter: 'console' }) => {
       snsConfig.credentials = new AWS.Credentials(options.awsKeyId, options.awsSecret);
       snsConfig.params = { TopicArn: options.awsTopicArn };
       sns = new AWS.SNS(snsConfig);
-      handler = SnsAudit.middleware(sns, options.awsTopicArn, options.responseHeader);
+      handler = SnsAudit.middleware(sns, options.awsTopicArn, options.responseHeader, quietEmit);
       break;
     case 'console':
     default:
-      console.log('Configuring console handler.');
+      quietInit || console.log('Configuring console handler.');
       handler = ConsoleAudit.middleware(options.responseHeader);
   }
   if (handler === null) {

@@ -18,8 +18,7 @@ provde additional audit log destinations.  The package includes two destinations
 * [Quick Start](quick-start)
 * [Options](options)
 * [Usage](usage)
-* Extending
-
+* [Extensions](extensions)
 
 ## Summary
 
@@ -65,8 +64,9 @@ const audit   = require('@isab/audit').middleware({responseHeader: "MyApp"});
 const app = express();
 const port = 6014;
 
-app.get('/', audit, (req, res) => {
+app.get('/test', audit, (req, res) => {
   req.audit.end();
+  req.audit.status = 200;
   res.status(200).end('OK\n');
 });
 
@@ -77,11 +77,11 @@ The output from a `curl` invocation shows the `MyApp` response header
 holding the request ID.
 
 ```
-$ curl http://localhost:6014/ -i
+$ curl http://localhost:6014/test -i
 HTTP/1.1 200 OK
 X-Powered-By: Express
-MyApp: cae53940-44b9-11ea-b41c-13705bcb6937
-Date: Sat, 01 Feb 2020 06:12:15 GMT
+MyApp: ee49ed90-4603-11ea-9621-77baedfd4eb4
+Date: Sun, 02 Feb 2020 21:35:28 GMT
 Connection: keep-alive
 Content-Length: 3
 
@@ -95,25 +95,25 @@ displays of the request ID .
 $ node minimalApp
 Configuring console handler.
 Listening on 6014
------- Start request ID cae53940-44b9-11ea-b41c-13705bcb6937 ----------
- Start time: 2020-02-01T06:12:15.178Z
-   End time: 2020-02-01T06:12:15.190Z
-   Duration: 12 ms
-HTTP Status: 0
-  Component: /
+------ Start request ID ee49ed90-4603-11ea-9621-77baedfd4eb4 ----------
+ Start time: 2020-02-02T21:35:28.483Z
+   End time: 2020-02-02T21:35:28.491Z
+   Duration: 8 ms
+HTTP Status: 200
+  Component: /test
      Action: GET
- Auth Token: present and valid
+ Auth Token: missing
   Client IP: ::1
   Client ID: undefined
   Issuer ID: undefined
      Fields: undefined
      Claims: {}
      Errors: []
------- End request ID cae53940-44b9-11ea-b41c-13705bcb6937 ------------
+------ End request ID ee49ed90-4603-11ea-9621-77baedfd4eb4 ------------
 ```
 
 Most of the fields are empty or undefined.  In practice, these are populated
-within the request handlers are described below.  Only a few fields are 
+within the request handlers as described below.  Only a few fields are 
 populated automatically.
 
 
@@ -125,9 +125,16 @@ The following properties apply to all destinations.
 |------------------|-------------------------------------|-----------|
 | `emitter`        | `console` or `awssns`               | `console` |
 | `responseHeader` | Response header name for request ID | none      |
+| `quietInit`      | `true` = suppress init logging      | `false`   |
+| `quietEmit`      | `true` = suppress emit logging      | `false`   |
 
 If `responseHeader` is not included in the options object, no response header 
 is added to the response by the audit middleware.
+
+The configuration is echoed to `stdout` when the module is initialized.
+This may be suppressed with `quietInit: true`.  Most emitters will log
+a summary of each emit.  Set `quietEmit: true` to suppress this.
+The `console` audit ignores this last flag.
 
 These additiona properties apply to AWS Simple Notification Services.
 They are ignored when `emitter` is `console`.
@@ -165,7 +172,7 @@ an `awsSecret` property, only whether it is set.
 ## Usage
 
 Configuring audit middleware is easy.  Using it soundly in your request handler
-code requires more work.  Two principals to keep in mind while writing your
+requires more work.  Two principles to keep in mind while writing your
 request handler are
 
 * An `audit` property on the `Request` object contains the audit instance.
@@ -174,5 +181,58 @@ request handler are
   otherwise the record is never emitted.
 
 This latter can be difficult to accommodate in the presence of multiple
-(often asynchronous) code paths for a request handler.
+(often asynchronous) code paths for a request handler.  The following is
+an example of a callback passed to a database library.  It has the typical
+signature of an error and a data object.
 
+```
+ 1  const audit = req.audit;
+    ...
+ 2  if (err) {
+ 3     response = {
+ 4        code: err.code,
+ 5        errno: err.errno,
+ 6        sqlMessage: err.sqlMessage ? err.sqlMessage.slice(0, 60) : 'None'
+ 7     }
+ 8     dbErrorLogger(err);
+ 9     res.status(500);
+10     audit.status = 500;
+11     audit.errors.push(err.code);
+12     audit.errors.push(err.sqlMessage);
+13  } else {
+14     response.insertId = results.insertId;
+15     res.status(200);
+16     audit.status = 200;
+17  }
+18  res.json(response);
+19  audit.end();
+```
+
+Lines 9 and 15 show the setting of the HTTP status code on the audit object.
+Lines 11 and 12 demonstrate that error messages are *pushed* onto the error
+array.
+Line 19 invokes `end()`.
+There will typically be a call to `end()` at the end of each asynchronous 
+code path.  This is not simply something that can be cleaned up at the end
+of the current event loop.
+
+## Extensions
+
+One can easily extend the `Audit` class to customize your own output (in the
+case of the `Console`) or a different audit destination.  Each extension module
+exports
+
+* `middleware` - the `(req, res, next)` function that provides the middleware
+* the class itself
+
+Only the first is strictly necessary.  Normal usage of the the audit doesn't
+involve direct access to the `Audit` subclass.  But it can be useful for
+unit testing.
+
+For extension samles, checkout the following classes in the GitHub repository:
+
+* [ConsoleAudit](https://github.com/lacounty-isab/auditjs/blob/master/npmpkg/ConsoleAudit.js)
+* [SnsAudit](https://github.com/lacounty-isab/auditjs/blob/master/npmpkg/SnsAudit.js)
+
+For a sample of processing SNS events from `SnsAudit`, see the Lambda function in
+the `aws` folder.

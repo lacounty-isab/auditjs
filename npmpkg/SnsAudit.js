@@ -2,9 +2,10 @@ const { Audit } = require('./Audit');
 
 class SnsAudit extends Audit {
   // Input is a configured instances of require('aws-sdk').SNS();
-  constructor(sns) {
+  constructor(sns, quietEmit) {
     super();
     this.sns = sns;
+    this.quietEmit = quietEmit;
   }
 
   end() {
@@ -16,27 +17,30 @@ class SnsAudit extends Audit {
     entry['status']     = this.status;
     entry['component']  = this.component;
     entry['action']     = this.action;
+    entry['token']      = this.missingToken ? 'missing' : this.invalidToken ? 'invalid' : 'valid';
     entry['client_ip']  = this.ip;
     entry['client_id']  = this.claims.sub;
-    entry['claims']     = JSON.stringify(this.claims);
-    entry['errors']     = JSON.stringify(this.errors);
+    entry['issuer_id']  = this.claims.iss;
+    entry['fields']     = this.fields;
+    entry['claims']     = this.claims;
+    entry['errors']     = this.errors;
 
     const auditStr = JSON.stringify(entry);
     const auditParams = { Message: auditStr };
     this.sns.publish(auditParams, (err, data) => {
       if (err) {
-        console.error('Failed to send SNS audit notification');
+        console.error('Failed to send SNS audit notification for Request ID:', this.uuid);
         console.error(err.message);
       } else {
-        console.log('SNS audit notification sent.  Message ID:', data.MessageId);
+        this.quietEmit || console.log('Request ID:', this.uuid, ', SNS Message ID:', data.MessageId);
       }
     })
   }
 }
 
-const middleware = (sns, topic, resHeaderName) => {
+const middleware = (sns, topic, resHeaderName, quietEmit) => {
   return (req, res, next) => {
-    const audit = new SnsAudit(sns, topic);
+    const audit = new SnsAudit(sns, quietEmit);
     audit.ip = req.ip;
     audit.action = req.method;
     audit.component = req.path;
