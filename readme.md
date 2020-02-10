@@ -136,7 +136,7 @@ This may be suppressed with `quietInit: true`.  Most emitters will log
 a summary of each emit.  Set `quietEmit: true` to suppress this.
 The `console` audit ignores this last flag.
 
-These additiona properties apply to AWS Simple Notification Services.
+These additional properties apply to AWS Simple Notification Services.
 They are ignored when `emitter` is `console`.
 
 | Property      | Value                        |
@@ -147,7 +147,7 @@ They are ignored when `emitter` is `console`.
 | `awsSecret`   | API secret for AWS user role |
 
 
-It is suggested that desired value be provided through environment variables.
+It is suggested that desired values be provided through environment variables.
 The following sample demonstrates the configuration of an SNS audit middleware
 from the environment.
 
@@ -229,7 +229,7 @@ Only the first is strictly necessary.  Normal usage of the the audit doesn't
 involve direct access to the `Audit` subclass.  But it can be useful for
 unit testing.
 
-For extension samles, checkout the following classes in the GitHub repository:
+For extension samples, check the following classes in the GitHub repository:
 
 * [ConsoleAudit](https://github.com/lacounty-isab/auditjs/blob/master/npmpkg/ConsoleAudit.js)
 * [SnsAudit](https://github.com/lacounty-isab/auditjs/blob/master/npmpkg/SnsAudit.js)
