@@ -48,20 +48,23 @@ const middleware = (options = { emitter: 'console' }) => {
           console.log('\tawsKeyId=', options.awsKeyId);
         } else {
           console.log('AWS SNS option missing "awsKeyId"');
-          break;
         }
         if (options.awsSecret) {
           console.log('\tawsSecret=**********');
         } else {
           console.log('AWS SNS option missing "awsSecret"');
-          break;
         }
       }
       const AWS = require('aws-sdk');
       const SnsAudit = require('./npmpkg/SnsAudit');
       const snsConfig = { region: options.awsRegion,
                           apiVersion: '2010-03-31' }
-      snsConfig.credentials = new AWS.Credentials(options.awsKeyId, options.awsSecret);
+      if (options.awsKeyId && options.awsSecret) {
+        snsConfig.credentials = new AWS.Credentials(options.awsKeyId, options.awsSecret);
+        console.log('Configuring SNS Audit credentials for', options.awsKeyId);
+      } else {
+        console.log('Configuring SNS Audit without explicit credentials.');
+      }
       snsConfig.params = { TopicArn: options.awsTopicArn };
       sns = new AWS.SNS(snsConfig);
       handler = SnsAudit.middleware(sns, options.awsTopicArn, options.responseHeader, quietEmit);
