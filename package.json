@@ -16,7 +16,7 @@
   "author": "Paul Glezen <pglezen@isab.lacounty.gov>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.610.0",
+    "aws-sdk": "^2.641.0",
     "luxon": "^1.22.0"
   },
   "devDependencies": {
