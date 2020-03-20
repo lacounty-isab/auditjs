@@ -18,6 +18,7 @@ provde additional audit log destinations.  The package includes two destinations
 * [Quick Start](quick-start)
 * [Options](options)
 * [Usage](usage)
+* [Unit Testing](unit-testing)
 * [Extensions](extensions)
 
 ## Summary
@@ -215,6 +216,38 @@ Line 19 invokes `end()`.
 There will typically be a call to `end()` at the end of each asynchronous 
 code path.  This is not simply something that can be cleaned up at the end
 of the current event loop.
+
+## Unit Testing
+
+When unit testing your request handlers, you'll need to supply an audit
+instance.  Two approaches are
+
+1. Use a tool like Jest to simulate an Audit instance through spies
+   (mock functions) to ensure the audit function is invoked as expected.
+
+2. Provide a ConsoleAudit instance to the test invocation.  This won't
+   test how the audit is being invoked; but it will at least get the
+   request handler working so that you can test its other behavior.
+
+To get the second option working in your Jest tests, incorporate the following
+example within your tests.
+
+```
+const AuditConfig = require('@isab/audit');
+
+let audit;
+
+beforeEach(() => {
+  audit = AuditConfig.instance();
+});
+
+test('Should find one error with this request', () => {
+  // Create mocks for req and res.
+  handler(req, res, audit);  // this tests expects one client error.
+  expect(audit.errors).toHaveLength(1);
+  expect(audit.status).toBe(400);
+});
+```
 
 ## Extensions
 

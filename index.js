@@ -1,9 +1,9 @@
 const ConsoleAudit = require('./npmpkg/ConsoleAudit');
 
-// Returns an instance of an Audit subclass.
+// Returns an instance of a ConsoleAudit.
 // Outside of testing, probably not what the user wants.
 //
-const record = (options = { emitter: 'console' }) => {
+const instance = (options = { emitter: 'console' }) => {
   let audit = null;
   switch (options.emitter) {
     case 'console':
@@ -82,4 +82,4 @@ const middleware = (options = { emitter: 'console' }) => {
   return handler;
 }
 
-module.exports = { record, middleware }
+module.exports = { instance, middleware }

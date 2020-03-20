@@ -4,14 +4,6 @@ const consoleOptions = {
   emitter: 'console',
   responseHeader: 'TestApp'
 }
-const snsOptions = {
-  emitter: 'awssns',
-  responseHeader: 'TestApp',
-  topic: 'audit.development',
-  region: 'us-west-1',
-  awsKeyId: "abcdef",
-  awsSecret: "123456"
-}
 
 let req, res, next;
 
