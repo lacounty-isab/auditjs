@@ -226,11 +226,12 @@ instance.  Two approaches are
    (mock functions) to ensure the audit function is invoked as expected.
 
 2. Provide a ConsoleAudit instance to the test invocation.  This won't
-   test how the audit is being invoked; but it will at least get the
-   request handler working so that you can test its other behavior.
+   avail itself to `Expect` methods like `.toHaveBeenCalled`.  But you
+   can still inspect the state of the `Audit` instance with `Expect`
+   methods.
 
 To get the second option working in your Jest tests, incorporate the following
-example within your tests.
+pattern into your tests.
 
 ```
 const AuditConfig = require('@isab/audit');
@@ -246,6 +247,7 @@ test('Should find one error with this request', () => {
   handler(req, res, audit);  // this tests expects one client error.
   expect(audit.errors).toHaveLength(1);
   expect(audit.status).toBe(400);
+  expect(audit.done).toBe(true);
 });
 ```
 
