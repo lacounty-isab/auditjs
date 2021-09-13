@@ -6,9 +6,9 @@ const addItem = {
 };
 
 exports.handler = (event, context, callback) => {
-  // console.log('Received event:', JSON.stringify(event, null, 2));
   const jsonStr = event.Records[0].Sns.Message;
   const auditObj = JSON.parse(jsonStr);
+  // eslint-disable-next-line no-unused-vars
   const auditStr = `
    Audit ID: ${auditObj.id}
      Status: ${auditObj.status}
@@ -19,7 +19,7 @@ exports.handler = (event, context, callback) => {
   addItem.Item = auditObj;
 
   const doc = new DynamoDB.DocumentClient();
-  doc.put(addItem, (err, data) => {
+  doc.put(addItem, err => {
     if (err) {
       console.log("DynamoDB put problem:", JSON.stringify(err, null, 2));
       callback(err);

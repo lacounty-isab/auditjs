@@ -4,7 +4,20 @@
   "description": "Audit package for Node.js/Express apps running in AWS",
   "main": "index.js",
   "scripts": {
-    "test": "jest --silent --verbose"
+    "test": "jest --silent --verbose",
+    "lint": "eslint aws npmpkg tests"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "node": true,
+      "commonjs": true,
+      "es2020": true,
+      "jest": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 11
+    }
   },
   "repository": {
     "type": "git",
@@ -17,10 +30,10 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.715.0",
-    "luxon": "^1.24.1"
+    "luxon": "^2.0.2"
   },
   "devDependencies": {
     "eslint": "^7.5.0",
-    "jest": "^26.1.0"
+    "jest": "^27.2.0"
   }
 }

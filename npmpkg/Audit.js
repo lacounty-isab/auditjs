@@ -2,7 +2,7 @@
 // But it doesn't generate any output.
 // Subclasses can generate the output.
 
-const uuid = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
 const { DateTime, Interval }= require('luxon');
 
 class Audit {
@@ -10,7 +10,7 @@ class Audit {
     this.startTime = DateTime.utc();
     this.endTime = 0;
     this.msDuration = 0;
-    this.uuid  = uuid();
+    this.uuid  = uuidv1();
     this.status = 0;
     this.component = '';
     this.action = '';
