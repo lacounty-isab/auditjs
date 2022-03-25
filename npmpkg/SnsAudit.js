@@ -1,14 +1,16 @@
 const { Audit } = require('./Audit');
+const { PublishCommand } = require('@aws-sdk/client-sns');
 
 class SnsAudit extends Audit {
-  // Input is a configured instances of require('aws-sdk').SNS();
-  constructor(sns, quietEmit) {
+  // Input is a configured instances of require('@aws-sdk/client-sns').SNSClient;
+  constructor(sns, topic, quietEmit) {
     super();
-    this.sns = sns;
+    this.snsClient = sns;
+    this.topic = topic;
     this.quietEmit = quietEmit;
   }
 
-  end() {
+  async end() {
     super.end();
     const entry = {'id': this.uuid };
     entry['start_time'] = this.startTime.toISO();
@@ -25,22 +27,21 @@ class SnsAudit extends Audit {
     entry['claims']     = this.claims;
     entry['errors']     = this.errors;
 
-    const auditStr = JSON.stringify(entry);
-    const auditParams = { Message: auditStr };
-    this.sns.publish(auditParams, (err, data) => {
-      if (err) {
-        console.error('Failed to send SNS audit notification for Request ID:', this.uuid);
-        console.error(err.message);
-      } else {
-        this.quietEmit || console.log('Request ID:', this.uuid, ', SNS Message ID:', data.MessageId);
-      }
-    })
+    try {
+      const auditStr = JSON.stringify(entry);
+      const publishCmd = new PublishCommand({ TopicArn: this.topic, Message: auditStr });
+      const response = await this.snsClient.send(publishCmd);
+      this.quietEmit || console.log('Request ID:', this.uuid, ', SNS Message ID:', response.MessageId);
+    } catch (err) {
+      console.error('Failed to send SNS audit notification for Request ID:', this.uuid);
+      console.error(err.message);
+    }
   }
 }
 
 const middleware = (sns, topic, resHeaderName, quietEmit) => {
   return (req, res, next) => {
-    const audit = new SnsAudit(sns, quietEmit);
+    const audit = new SnsAudit(sns, topic, quietEmit);
     audit.ip = req.ip;
     audit.action = req.method;
     audit.component = req.path;

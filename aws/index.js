@@ -1,11 +1,13 @@
 console.log('Loading function');
-const { DynamoDB } = require('aws-sdk');
+const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+const { marshall } = require('@aws-sdk/util-dynamodb');
 const addItem = {
   TableName: 'development.audit',
   ConditionExpression: 'attribute_not_exists(id)'
 };
 
-exports.handler = (event, context, callback) => {
+// eslint-disable-next-line no-unused-vars
+exports.handler = async (event, context) => {
   const jsonStr = event.Records[0].Sns.Message;
   const auditObj = JSON.parse(jsonStr);
   // eslint-disable-next-line no-unused-vars
@@ -16,16 +18,14 @@ exports.handler = (event, context, callback) => {
      Action: ${auditObj.action}
      Fields: ${auditObj.fields}
 `;
-  addItem.Item = auditObj;
 
-  const doc = new DynamoDB.DocumentClient();
-  doc.put(addItem, err => {
-    if (err) {
-      console.log("DynamoDB put problem:", JSON.stringify(err, null, 2));
-      callback(err);
-    } else {
-      console.log('Put audit item', auditObj.id);
-      callback(null, '');
-    }
-  });
+  try {
+    addItem.Item = marshall(auditObj);
+    const dbClient = new DynamoDBClient();
+    const cmd = new PutItemCommand(addItem);
+    await dbClient.send(cmd);
+    console.log(`Put audit item ${auditObj.id}`);
+  } catch (err) {
+    console.error(`DynamoDB put problem: ${JSON.stringify(err, null, 2)}`);
+  }
 };
